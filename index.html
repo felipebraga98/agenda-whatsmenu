@@ -151,6 +151,7 @@ form.grid input:focus{outline:none;border-color:var(--green)}
       <a class="btn b sm" id="ok-ics">Salvar no Outlook ou iPhone</a>
     </div>
     <p id="ok-local" style="margin:0 0 8px"></p>
+    <p id="ok-video" style="margin:0 0 12px" hidden><a class="btn v sm" id="ok-video-a" target="_blank" rel="noopener">📹 Link da chamada de vídeo</a><br><small class="sub">Guarde este link: se combinarmos atendimento por vídeo, é por ele que você entra.</small></p>
     <p id="ok-email" class="sub" style="margin:0 0 8px"></p>
     <p style="margin:0">Precisa mudar? <a href="#" id="ok-ger" style="color:var(--green-deep);font-weight:700">Remarcar ou cancelar</a></p>
     <p class="sub" id="ok-cod" style="margin-top:12px"></p>
@@ -286,7 +287,8 @@ form.grid input:focus{outline:none;border-color:var(--green)}
     var txt=(o.textoSucesso||info.textoSucesso||'Te espero {quando}, para configurarmos o seu painel e você faturar ainda mais com a WhatsMenu! Desde já, te desejo todo o sucesso! 💚').replace('{quando}',comArtigo(r.rotulo)+', às '+r.hora);
     $('ok-recado').textContent=txt;$('ok-recado').hidden=!!o.pendente;
     $('ok-google').href=r.google;$('ok-ics').href=r.ics;$('ok-botoes').hidden=!!o.pendente;
-    $('ok-local').textContent=(r.local||'')+(r.linkVideo?' Link: '+r.linkVideo:'');
+    $('ok-local').textContent=r.local||'';
+    $('ok-video').hidden=!r.linkVideo||!!o.pendente;if(r.linkVideo)$('ok-video-a').href=r.linkVideo;
     $('ok-email').textContent=o.pendente?'':o.emailEnviado?'Enviamos a confirmação para o seu e-mail, com o link para remarcar se precisar.':'';
     $('ok-cod').textContent='Código do agendamento: '+r.id;
     if(!o.pendente)festa();
@@ -309,7 +311,7 @@ form.grid input:focus{outline:none;border-color:var(--green)}
     var r=reserva,canc=r.status==='cancelado';
     $('g-estado').textContent={aguardando:'Confirmado',pendente:'Esperando você confirmar pelo e-mail',atendido:'Atendimento realizado','nao-atendeu':'Não conseguimos falar com você',cancelado:'Cancelado'}[r.status]||r.status;
     $('g-estado').className='estado'+(canc?' c':'');
-    $('g-info').innerHTML='<dt>Quando</dt><dd>'+esc(cap(r.rotulo))+', das '+r.hora+' às '+r.fim+'</dd><dt>Atendimento</dt><dd>'+esc(r.tipoNome||'Atendimento')+'</dd><dt>Nome</dt><dd>'+esc(r.nome)+' · '+esc(r.loja)+'</dd><dt>Onde</dt><dd>'+esc(r.local||'')+(r.linkVideo?'<br><a href="'+esc(r.linkVideo)+'" target="_blank" rel="noopener">'+esc(r.linkVideo)+'</a>':'')+'</dd><dt>Código</dt><dd>'+esc(r.id)+'</dd>';
+    $('g-info').innerHTML='<dt>Quando</dt><dd>'+esc(cap(r.rotulo))+', das '+r.hora+' às '+r.fim+'</dd><dt>Atendimento</dt><dd>'+esc(r.tipoNome||'Atendimento')+'</dd><dt>Nome</dt><dd>'+esc(r.nome)+' · '+esc(r.loja)+'</dd><dt>Onde</dt><dd>'+esc(r.local||'')+(r.linkVideo?'<br><a href="'+esc(r.linkVideo)+'" target="_blank" rel="noopener" style="color:var(--green-deep);font-weight:700">📹 Entrar na chamada de vídeo</a>':'')+'</dd><dt>Código</dt><dd>'+esc(r.id)+'</dd>';
     $('g-botoes').hidden=!r.podeAlterar;$('g-google').href=r.google;
   }
   $('g-cancelar').onclick=function(){$('g-conf').hidden=false;$('g-sim').focus();};
