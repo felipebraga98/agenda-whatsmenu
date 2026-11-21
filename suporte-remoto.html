@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WhatsMenuDesk — Suporte remoto WhatsMenu</title>
+<meta name="description" content="Baixe o WhatsMenuDesk para a equipe WhatsMenu te ajudar direto no seu computador.">
+<meta property="og:title" content="WhatsMenuDesk — Suporte remoto WhatsMenu">
+<meta property="og:description" content="Baixe, abra e passe o ID e a senha para o atendente.">
+<meta property="og:image" content="logo.png">
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;600;700&display=swap">
+<style>
+:root{--green:#00a63e;--green-deep:#007a2e;--green-soft:#e6f6ec;--yellow:#ffd23f;--ink:#14251b;--muted:#4f6357;--line:#d7e6dc;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;--f-body:"Figtree","Segoe UI",system-ui,sans-serif;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--green);color:var(--ink);font:16px/1.55 var(--f-body);padding:28px max(16px,env(safe-area-inset-left,0px)) 48px max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{color:#fff;display:flex;align-items:center;gap:16px}
+header img{width:72px;height:72px;background:#fff;border-radius:50%;padding:7px;box-shadow:0 3px 0 var(--green-deep);flex:none}
+h1{font:800 clamp(1.7rem,5vw,2.4rem)/1.1 var(--f-display);margin:0}
+header p{margin:4px 0 0;opacity:.95}
+.card{background:#fff;border-radius:16px;padding:24px clamp(16px,4vw,30px);box-shadow:0 3px 0 var(--green-deep)}
+.baixar{display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+.btn{background:var(--yellow);color:var(--ink);border-radius:14px;padding:16px 24px;font:800 1.15rem var(--f-body);text-decoration:none;box-shadow:0 3px 0 #c99a00;display:inline-flex;align-items:center;gap:10px}
+.btn:hover{filter:brightness(1.05)}
+.btn:focus-visible{outline:3px solid var(--green-deep);outline-offset:3px}
+.info{color:var(--muted);font-size:.92rem}
+ol{margin:0;padding:0;list-style:none;display:grid;gap:14px;counter-reset:p}
+ol li{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;counter-increment:p}
+ol li::before{content:counter(p);width:36px;height:36px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font:800 1.05rem var(--f-display)}
+ol b{display:block}
+.aviso{background:#fff7d1;border-radius:12px;padding:12px 14px;font-size:.95rem}
+h2{font:800 1.25rem var(--f-display);margin:0 0 12px}
+.mock{border:1px solid var(--line);border-radius:12px;overflow:hidden;max-width:300px}
+.mock .t{background:var(--green);color:#fff;padding:8px 12px;font-weight:800}
+.mock .c{padding:12px;font-size:.85rem}
+.mock .n{font:800 1.4rem/1.1 var(--f-body);letter-spacing:.05em}
+.mock .s{font:800 1.2rem Consolas,monospace;letter-spacing:.12em}
+.lado{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+@media (max-width:620px){.lado{grid-template-columns:1fr}header img{width:58px;height:58px}}
+footer{text-align:center;color:#fff;opacity:.85;font-size:.85rem}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <img src="logo.png" alt="WhatsMenu">
+    <div><h1>WhatsMenuDesk</h1><p>O programa de suporte remoto da WhatsMenu. Com ele, nosso atendente te ajuda direto no seu computador.</p></div>
+  </header>
+
+  <section class="card">
+    <div class="baixar">
+      <a class="btn" href="WhatsMenuDesk.exe" download id="baixar">⬇ Baixar o WhatsMenuDesk</a>
+      <div class="info">Para Windows 10 e 11 · cerca de 7 MB<br>Não precisa instalar: é só abrir.</div>
+    </div>
+    <p class="aviso" id="aviso-so" hidden style="margin:14px 0 0">Você está no celular ou num computador que não é Windows. Abra esta página no computador da loja (Windows) para baixar o programa.</p>
+  </section>
+
+  <section class="card">
+    <h2>Como usar</h2>
+    <div class="lado">
+      <ol>
+        <li><span><b>Abra o arquivo baixado</b>Clique em <b>WhatsMenuDesk.exe</b> na barra de downloads do navegador.</span></li>
+        <li><span><b>Se o Windows mostrar um aviso azul</b>Clique em <b>Mais informações</b> e depois em <b>Executar mesmo assim</b>. É só na primeira vez.</span></li>
+        <li><span><b>Passe o ID e a senha</b>Mande para o atendente os números do <b>ID</b> e a <b>senha</b> que aparecem na janela.</span></li>
+        <li><span><b>Autorize o acesso</b>Quando aparecer a pergunta, clique em <b>Sim</b>. Depois escolha <b>Tela inteira</b> e clique em <b>Compartilhar</b>.</span></li>
+      </ol>
+      <div class="mock" aria-hidden="true"><div class="t">WhatsMenuDesk</div><div class="c">SEU ID<div class="n">123 456 789</div><br>SENHA<div class="s">abc23k</div></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Você está no controle</h2>
+    <p style="margin:0 0 10px">Ninguém acessa o seu computador sem você clicar em <b>Sim</b>. Durante o atendimento, a janela do WhatsMenuDesk mostra quem está acessando e tem o botão <b>Encerrar acesso</b> para parar quando quiser. A senha muda a cada atendimento.</p>
+    <p class="info" style="margin:0">Você também pode desligar o uso do mouse e do teclado e deixar o atendente só olhar a tela.</p>
+  </section>
+  <footer>WhatsMenu · Equipe de suporte e implantação</footer>
+</main>
+<script>
+(function(){
+  var ua=navigator.userAgent||'';
+  if(!/Windows/i.test(ua)||/Android|iPhone|iPad/i.test(ua))document.getElementById('aviso-so').hidden=false;
+})();
+</script>
+</body>
+</html>
