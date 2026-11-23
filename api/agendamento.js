@@ -37,7 +37,8 @@ const PADRAO = {
   tipos: [{ id: 'implantacao', nome: 'Configuração do painel', descricao: 'Vamos configurar o seu painel com você.', duracao: 60, ativo: true }],
   local: 'Vamos chamar você no WhatsApp informado.',
   linkVideo: '',
-  chamadaPropria: true,   // cria uma sala de vídeo WhatsMenu diferente para cada agendamento
+  chamadaPropria: true,
+  alarmeMin: 15,          // quantos minutos antes o alarme da equipe começa a tocar   // cria uma sala de vídeo WhatsMenu diferente para cada agendamento
   lembretes: { confirmacao: true, vespera: true, umaHora: true },
   confirmarEmail: false,  // exige que o cliente confirme pelo e-mail em até 30 min
   textoSucesso: 'Te espero {quando}, para configurarmos o seu painel e você faturar ainda mais com a WhatsMenu! Desde já, te desejo todo o sucesso! 💚',
@@ -123,6 +124,7 @@ function normalizaConfig(b, atual) {
   c.lembretes = { confirmacao: !!(b.lembretes && b.lembretes.confirmacao), vespera: !!(b.lembretes && b.lembretes.vespera), umaHora: !!(b.lembretes && b.lembretes.umaHora) };
   c.confirmarEmail = !!b.confirmarEmail;
   c.chamadaPropria = b.chamadaPropria !== false;
+  c.alarmeMin = n(b.alarmeMin, 1, 180, atual.alarmeMin || 15);
   c.textoSucesso = limpa(b.textoSucesso, 400) || PADRAO.textoSucesso;
   c.icsChave = b.novaChave ? crypto.randomBytes(16).toString('hex') : atual.icsChave;
   return c;
@@ -316,7 +318,8 @@ async function enviarLembretes(c, reservas) {
   let n = 0;
   const agora = Date.now();
   for (const r of reservas) {
-    if (r.status !== 'aguardando' || !r.email) continue;
+    // importados do Google Agenda não recebem lembrete por e-mail (o Google já avisa o cliente)
+    if (r.status !== 'aguardando' || !r.email || r.origem === 'google') continue;
     const ini = inicioMs(r.data, r.hora);
     const falta = (ini - agora) / 60000;
     const antecedenciaCriacao = (ini - (r.criadoEm || 0)) / 60000;
@@ -555,7 +558,7 @@ module.exports = async function handler(req, res) {
       const alarmes = reservas.filter((r) => {
         if (r.status !== 'aguardando' || r.alarmeParado || r.emAtendimento) return false;
         const ini = inicioMs(r.data, r.hora);
-        return agora >= ini - 15 * 60e3 && agora <= ini + 120 * 60e3;
+        return agora >= ini - (c.alarmeMin || 15) * 60e3 && agora <= ini + 120 * 60e3;
       }).sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora)).map((r) => ({
         id: r.id, nome: r.nome, loja: r.loja, data: r.data, hora: r.hora, whatsapp: r.whatsapp,
         min: Math.round((inicioMs(r.data, r.hora) - agora) / 60000), consultorNome: r.consultorNome || '', tipoNome: r.tipoNome || '',
@@ -683,6 +686,47 @@ module.exports = async function handler(req, res) {
       let avisou = false;
       if (b.avisar && r.email) { try { avisou = await emailCliente('confirmado', r, c); } catch (e) {} }
       return res.status(200).json({ reserva: paraEquipe(r, c), emailEnviado: avisou });
+    }
+
+    // ---------- importar do Google Agenda (só administradores) ----------
+    if (acao === 'importar' && req.method === 'POST') {
+      if (!eu.admin) return res.status(403).json({ erro: 'Só administradores podem importar agendamentos.' });
+      const b = lerBody(req);
+      const evs = Array.isArray(b.eventos) ? b.eventos.slice(0, 100) : [];
+      let criados = 0, repetidos = 0, erros = 0;
+      for (const ev of evs) {
+        try {
+          const data = limpa(ev.data, 10), hora = limpa(ev.hora, 5), uid = limpa(ev.uid, 300);
+          if (!DATA_RE.test(data) || !HORA_RE.test(hora)) { erros++; continue; }
+          // não importa duas vezes o mesmo evento do Google
+          if (uid && (await redis(['HGET', 'agenda:importados', uid]))) { repetidos++; continue; }
+          const tipo = tipoDe(c, '');
+          const dur = Math.max(10, Math.min(480, parseInt(ev.duracao, 10) || tipo.duracao || 30));
+          const r = Object.assign({
+            id: Date.now().toString(36).toUpperCase() + crypto.randomBytes(2).toString('hex').toUpperCase(),
+            token: crypto.randomBytes(16).toString('hex'),
+            data, hora, tipo: tipo.id, tipoNome: limpa(ev.titulo, 80) || tipo.nome, duracao: dur,
+            status: (new Date(data + 'T' + hora + ':00-03:00').getTime() < Date.now() - 2 * 3600e3) ? 'atendido' : 'aguardando',
+            criadoEm: Date.now(), origem: 'google',
+            notas: ('Importado do Google Agenda' + (ev.agenda ? ' (' + limpa(ev.agenda, 80) + ')' : '') + '.' + (ev.descricao ? '\n\n' + String(ev.descricao).slice(0, 3000) : '')).trim(),
+            consultor: '', consultorNome: '', hist: [],
+          }, {
+            nome: limpa(ev.nome, 80) || limpa(ev.titulo, 80) || 'Cliente',
+            loja: limpa(ev.loja, 80) || limpa(ev.titulo, 80) || '—',
+            whatsapp: limpa(ev.whatsapp, 20).replace(/[^\d()+\- ]/g, ''),
+            email: EMAIL_RE.test(limpa(ev.email, 120)) ? limpa(ev.email, 120).toLowerCase() : '',
+          });
+          const link = limpa(ev.link, 300);
+          if (/^https:\/\//.test(link)) r.linkVideo = link;
+          await garantirSala(r);
+          historico(r, eu.nome, 'Importado do Google Agenda');
+          await salvar(r);
+          await redis(['HSET', K.tokens, r.token, r.id]);
+          if (uid) await redis(['HSET', 'agenda:importados', uid, r.id]);
+          criados++;
+        } catch (e) { erros++; }
+      }
+      return res.status(200).json({ criados, repetidos, erros });
     }
 
     if (acao === 'bloqueio' && req.method === 'POST') {
